@@ -49,7 +49,6 @@ type groupData= {
 
 graph.initStencil(groupData)
 ```
-- groupData说明
 ## 计划
 后期会增加工具条、查看模式
 
