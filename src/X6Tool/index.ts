@@ -334,7 +334,7 @@ export default class X6Tool {
                     },
                     attrs: {
                         image: {
-                            'xlink:href': `/ngeq/svg/${child.file}`,
+                            'xlink:href':child.file,
                         },
                         label:{
                             ref:'image',
