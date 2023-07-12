@@ -1,9 +1,9 @@
 export default class X6Shortkeys {
     constructor(graph) {
         this._graph = graph;
-        this.initShortkeys();
+        this._initShortkeys();
     }
-    initShortkeys() {
+    _initShortkeys() {
         //删除
         this._graph.bindKey('backspace', () => {
             this.removeCells();
@@ -84,7 +84,7 @@ export default class X6Shortkeys {
     }
     upZoom() {
         const zoom = this._graph.zoom();
-        if (zoom < 1.5) {
+        if (zoom < 5) {
             this._graph.zoom(0.1);
         }
     }
@@ -172,5 +172,19 @@ export default class X6Shortkeys {
         if (obj) {
             obj.toBack();
         }
+    }
+    exportSVG() {
+        this._graph.exportSVG('chart', {
+            beforeSerialize: function (svg) {
+                const viewport = svg.querySelector('.x6-graph-svg-viewport');
+                viewport === null || viewport === void 0 ? void 0 : viewport.setAttribute('transform', 'matrix(0.9,0,0,0.9,50,-50)');
+            }
+        });
+    }
+    exportPNG() {
+        this._graph.exportPNG();
+    }
+    exportJPEG() {
+        this._graph.exportJPEG();
     }
 }

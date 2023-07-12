@@ -32,7 +32,8 @@ export default class X6Tool {
      * @param stencilContainer HTMLElement
      * @param groupData stencilData
      */
-    initStencil(groupData: stencilData): void;
+    initStencil(groupData: stencilData): Promise<void>;
+    private tansform2Base64;
     getInstance(): Graph;
 }
 export {};

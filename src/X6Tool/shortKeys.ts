@@ -3,10 +3,10 @@ export default class X6Shortkeys {
   protected _graph;
   constructor(graph: Graph) {
     this._graph = graph
-    this.initShortkeys()
+    this._initShortkeys()
   }
 
-  private initShortkeys() {
+  private _initShortkeys() {
     //删除
     this._graph.bindKey('backspace', () => {
       this.removeCells()
@@ -79,12 +79,12 @@ export default class X6Shortkeys {
     if (!this._graph.isClipboardEmpty()) {
       let cells;
       if (options && !isNaN(options.x) && !isNaN(options.y)) {
-         cells = this._graph.paste()
+        cells = this._graph.paste()
         if (cells.length && cells.length == 1) {
           cells[0]!.setProp('position', { x: options.x, y: options.y })
         }
-      }else{
-         cells = this._graph.paste({ offset: 32 })
+      } else {
+        cells = this._graph.paste({ offset: 32 })
       }
       this._graph.cleanSelection()
       this._graph.select(cells)
@@ -94,7 +94,7 @@ export default class X6Shortkeys {
 
   protected upZoom() {
     const zoom = this._graph.zoom()
-    if (zoom < 1.5) {
+    if (zoom < 5) {
       this._graph.zoom(0.1)
     }
   }
@@ -120,7 +120,7 @@ export default class X6Shortkeys {
     return false
   }
 
-  protected upZIndex(cell?: Cell) :void {
+  protected upZIndex(cell?: Cell): void {
     let obj;
     if (cell) {
       obj = cell
@@ -131,16 +131,16 @@ export default class X6Shortkeys {
       }
     }
 
-    if(obj){
+    if (obj) {
       const zIndex = obj.zIndex as number
       const maxIndex = this._graph.getCellCount()
-      if(zIndex<maxIndex){
+      if (zIndex < maxIndex) {
         obj.setZIndex(zIndex + 1)
       }
     }
   }
 
-  protected downZIndex(cell?: Cell) :void{
+  protected downZIndex(cell?: Cell): void {
     let obj;
     if (cell) {
       obj = cell
@@ -151,15 +151,15 @@ export default class X6Shortkeys {
       }
     }
 
-    if (obj){
+    if (obj) {
       const zIndex = obj.zIndex as number
-      if(zIndex>0){
+      if (zIndex > 0) {
         obj.setZIndex(zIndex - 1)
       }
     }
   }
 
-  protected toFront(cell?: Cell):void {
+  protected toFront(cell?: Cell): void {
     let obj;
     if (cell) {
       obj = cell
@@ -169,13 +169,13 @@ export default class X6Shortkeys {
         obj = cells[0]
       }
     }
-    if(obj){
+    if (obj) {
       obj.toFront()
     }
 
   }
 
-  protected toBack(cell?: Cell):void {
+  protected toBack(cell?: Cell): void {
     let obj;
     if (cell) {
       obj = cell
@@ -185,9 +185,25 @@ export default class X6Shortkeys {
         obj = cells[0]
       }
     }
-    if (obj){
+    if (obj) {
       obj.toBack()
     }
 
+  }
+
+  protected exportSVG() {
+    this._graph.exportSVG('chart', {
+      beforeSerialize: function (this, svg) {
+        const viewport = svg.querySelector('.x6-graph-svg-viewport')
+        viewport?.setAttribute('transform', 'matrix(0.9,0,0,0.9,50,-50)')
+      }
+    })
+  }
+  protected exportPNG() {
+    this._graph.exportPNG()
+  }
+
+  protected exportJPEG() {
+    this._graph.exportJPEG()
   }
 }

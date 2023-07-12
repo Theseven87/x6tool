@@ -64,7 +64,7 @@ export default class X6ContextMenu extends shortKeys {
             ul.appendChild(li);
         });
         div.appendChild(ul);
-        this._el.appendChild(div);
+        document.querySelector('body').appendChild(div);
         div.addEventListener('click', (ev) => {
             const cell = this.selectedCell;
             if (cell) {
@@ -73,11 +73,13 @@ export default class X6ContextMenu extends shortKeys {
                     case 1:
                         if (cell) {
                             this.copyCells([cell]);
+                            this.hiddenContextMenu(1);
                         }
                         break;
                     case 2:
                         if (cell) {
                             this.removeCells([cell]);
+                            this.hiddenContextMenu(1);
                         }
                         break;
                     case 3:
@@ -93,11 +95,13 @@ export default class X6ContextMenu extends shortKeys {
                     case 5:
                         if (cell) {
                             this.toFront(cell);
+                            this.hiddenContextMenu(1);
                         }
                         break;
                     case 6:
                         if (cell) {
                             this.toBack(cell);
+                            this.hiddenContextMenu(1);
                         }
                         break;
                     case 7:
@@ -109,6 +113,7 @@ export default class X6ContextMenu extends shortKeys {
                             else {
                                 cell.setAttrByPath('label', { visibility: 'hidden' });
                             }
+                            this.hiddenContextMenu(1);
                         }
                         break;
                     default:
@@ -145,6 +150,18 @@ export default class X6ContextMenu extends shortKeys {
                 value: '5',
                 shortKey: 'ctrl+y'
             },
+            {
+                label: '导出-svg',
+                value: '6'
+            },
+            {
+                label: '导出-png',
+                value: '7'
+            },
+            {
+                label: '导出-jpeg',
+                value: '8'
+            }
         ];
         const div = document.createElement('div');
         div.className = 'x6Tool-contextMenu';
@@ -164,7 +181,7 @@ export default class X6ContextMenu extends shortKeys {
             ul.appendChild(li);
         });
         div.appendChild(ul);
-        this._el.appendChild(div);
+        document.querySelector('body').appendChild(div);
         div.addEventListener('click', (ev) => {
             const menuValue = ev.target.getAttribute('value');
             switch (Number(menuValue)) {
@@ -182,6 +199,15 @@ export default class X6ContextMenu extends shortKeys {
                     break;
                 case 5:
                     this.redo();
+                    break;
+                case 6:
+                    this.exportSVG();
+                    break;
+                case 7:
+                    this.exportPNG();
+                    break;
+                case 8:
+                    this.exportJPEG();
                     break;
                 default:
                     break;

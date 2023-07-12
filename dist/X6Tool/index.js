@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { Graph } from '@antv/x6';
 import { Snapline } from '@antv/x6-plugin-snapline'; //对齐线
 import { MiniMap } from '@antv/x6-plugin-minimap'; //小地图    
@@ -8,8 +17,10 @@ import { Keyboard } from '@antv/x6-plugin-keyboard'; //快捷键
 import { Selection } from '@antv/x6-plugin-selection'; //选择
 import { Clipboard } from '@antv/x6-plugin-clipboard'; //复制粘贴
 import { History } from '@antv/x6-plugin-history'; //撤销重做
+import { Export } from '@antv/x6-plugin-export'; //导出
 import { registerEdge, inserCss } from './utils'; //工具
-import X6Events from './events'; //事件处理
+// import X6Events from './events' //事件处理
+import ToolBar from './toolbar';
 const ports = {
     groups: {
         port1: {
@@ -101,28 +112,32 @@ export default class X6Tool {
         const opt = Object.assign({}, defaultParams, options);
         registerEdge();
         this._el = container;
-        this._el.style.cssText = 'position:relative;display:flex;';
+        this._el.style.cssText = 'display:flex;';
         this.type = opt.edit ? 'edit' : 'view';
         this._graph = this._initGraph();
         this._addPlugins();
         if (opt.minimap) {
             this._createMinimap();
         }
-        // const cellContextMenu = this._createCellContextMenu()
         if (opt.edit) {
-            this._events = new X6Events(this._graph, container);
+            this._events = new ToolBar(this._graph, container);
         }
-        // new X6Shortkeys(this._graph)
         inserCss();
     }
     _initGraph() {
+        const boxDom = document.createElement('div');
+        boxDom.className = 'containerBox';
+        const parentDiv = document.createElement('div');
+        parentDiv.style.cssText = 'width:100%;height:100%;';
         const graphDom = document.createElement('div');
-        graphDom.style.cssText = 'flex:1;';
-        // graphDom.style.cssText = 'width:100%;height:100%;'
-        this._el.appendChild(graphDom);
+        graphDom.style.cssText = 'width:100%;height:100%;';
+        parentDiv.appendChild(graphDom);
+        boxDom.appendChild(parentDiv);
+        this._el.appendChild(boxDom);
         const graph = new Graph({
             container: graphDom,
             autoResize: true,
+            scaling: { min: 0.5, max: 4 },
             connecting: {
                 router: 'manhattan',
                 connector: {
@@ -142,6 +157,10 @@ export default class X6Tool {
                                 strokeWidth: 2,
                             },
                         },
+                        tools: [
+                            { name: 'vertices' },
+                            { name: 'button-remove' }
+                        ],
                         zIndex: -1,
                     });
                 },
@@ -160,7 +179,7 @@ export default class X6Tool {
                 };
             },
             grid: {
-                size: 10,
+                size: 20,
                 visible: true,
                 type: 'mesh',
                 args: {
@@ -172,8 +191,16 @@ export default class X6Tool {
                 color: '#F2F7FA',
             },
             panning: true,
-            mousewheel: true //滚轮缩放
+            mousewheel: {
+                enabled: true,
+                modifiers: ['alt', 'meta'],
+            }
         });
+        const pannable = document.querySelector('.x6-graph-pannable');
+        setTimeout(() => {
+            pannable.style.cssText = 'width:100%;height:100%;';
+            graph.centerContent();
+        }, 500);
         return graph;
     }
     /**
@@ -182,13 +209,12 @@ export default class X6Tool {
      * @memberof X6Tool
      */
     _addPlugins() {
-        this._graph.use(new Scroller({
-            enabled: true,
-            pageVisible: true,
-            pageBreak: true,
-            pannable: true,
-        }));
         if (this.type == 'edit') {
+            this._graph.use(new Scroller({
+                enabled: true,
+                pannable: true,
+                padding: { top: 200, right: 800, bottom: 200, left: 800 }
+            }));
             this._graph.use(new Snapline({
                 enabled: true,
             }));
@@ -204,6 +230,7 @@ export default class X6Tool {
             this._graph.use(new History({
                 enabled: true,
             }));
+            this._graph.use(new Export());
             this._graph.use(new Transform({
                 resizing: {
                     enabled: true,
@@ -244,63 +271,87 @@ export default class X6Tool {
      * @param groupData stencilData
      */
     initStencil(groupData) {
-        const stencilContainer = document.createElement('div');
-        stencilContainer.style.cssText = 'width:16rem;position:relative;';
-        this._el.insertBefore(stencilContainer, this._el.firstChild);
-        const stencil = new Stencil({
-            title: '模型',
-            search(cell, keyword) {
-                return cell.data.label.indexOf(keyword) !== -1;
-            },
-            placeholder: '请输入元件名称搜索',
-            notFoundText: '未找到元件',
-            collapsable: true,
-            target: this._graph,
-            groups: groupData,
-            stencilGraphHeight: 0,
-            stencilGraphPadding: 30,
-            layoutOptions: {
-                columnWidth: 60,
-                rowHeight: 40,
-            },
-        });
-        stencilContainer === null || stencilContainer === void 0 ? void 0 : stencilContainer.appendChild(stencil.container);
-        groupData.forEach(item => {
-            const data = [];
-            item.datas.forEach(child => {
-                const img = this._graph.createNode({
-                    shape: 'image',
-                    height: 40,
-                    width: 40,
-                    data: {
-                        label: child.label
-                    },
-                    attrs: {
-                        image: {
-                            'xlink:href': child.file,
+        return __awaiter(this, void 0, void 0, function* () {
+            const stencilContainer = document.createElement('div');
+            stencilContainer.style.cssText = 'width:16rem;position:relative;';
+            this._el.insertBefore(stencilContainer, this._el.firstChild);
+            const stencil = new Stencil({
+                title: '模型',
+                search(cell, keyword) {
+                    return cell.data.label.indexOf(keyword) !== -1;
+                },
+                placeholder: '请输入元件名称搜索',
+                notFoundText: '未找到元件',
+                collapsable: true,
+                target: this._graph,
+                groups: groupData,
+                stencilGraphHeight: 0,
+                stencilGraphPadding: 30,
+                layoutOptions: {
+                    columnWidth: 60,
+                    rowHeight: 40,
+                },
+            });
+            stencilContainer === null || stencilContainer === void 0 ? void 0 : stencilContainer.appendChild(stencil.container);
+            for (let i = 0; i < groupData.length; i++) {
+                const data = [];
+                const item = groupData[i];
+                for (let j = 0; j < item.datas.length; j++) {
+                    const child = item.datas[j];
+                    const imageData = yield this.tansform2Base64(child.file);
+                    const img = this._graph.createNode({
+                        shape: 'image',
+                        height: 40,
+                        width: 40,
+                        data: {
+                            label: child.label
                         },
-                        label: {
-                            ref: 'image',
-                            text: child.label,
-                            refX: '50%',
-                            refY: '100%',
-                            y: '20'
+                        attrs: {
+                            image: {
+                                'href': imageData
+                            },
+                            label: {
+                                ref: 'image',
+                                text: child.label,
+                                refX: '50%',
+                                refY: '100%',
+                                y: '20'
+                            },
                         },
-                    },
-                    ports,
+                        ports,
+                    });
+                    data.push(img);
+                }
+                stencil.load(data, item.name);
+            }
+            if (this.type == 'edit') {
+                stencilContainer.addEventListener('click', () => {
+                    this._events.hiddenContextMenu();
                 });
-                data.push(img);
-            });
-            stencil.load(data, item.name);
+                stencilContainer.addEventListener('contextmenu', () => {
+                    this._events.hiddenContextMenu();
+                });
+            }
         });
-        if (this.type == 'edit') {
-            stencilContainer.addEventListener('click', () => {
-                this._events.hiddenContextMenu();
-            });
-            stencilContainer.addEventListener('contextmenu', () => {
-                this._events.hiddenContextMenu();
-            });
-        }
+    }
+    tansform2Base64(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx === null || ctx === void 0 ? void 0 : ctx.drawImage(img, 0, 0);
+                const data = canvas.toDataURL();
+                resolve(data);
+            };
+            img.onerror = () => {
+                reject('图片加载失败');
+            };
+        });
+        // return url
     }
     //获取graph实例
     getInstance() {

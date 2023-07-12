@@ -8,8 +8,10 @@ import { Keyboard } from '@antv/x6-plugin-keyboard'     //快捷键
 import { Selection } from '@antv/x6-plugin-selection'   //选择
 import { Clipboard } from '@antv/x6-plugin-clipboard'   //复制粘贴
 import { History } from '@antv/x6-plugin-history' //撤销重做
+import { Export } from '@antv/x6-plugin-export' //导出
 import { registerEdge,inserCss } from './utils'     //工具
-import X6Events from './events' //事件处理
+// import X6Events from './events' //事件处理
+import ToolBar from './toolbar'
 const ports = {
     groups: {
         port1: {
@@ -121,7 +123,7 @@ export default class X6Tool {
         const opt = Object.assign({},defaultParams,options)
         registerEdge()
         this._el = container
-        this._el.style.cssText = 'position:relative;display:flex;'
+        this._el.style.cssText = 'display:flex;'
         this.type = opt.edit?'edit':'view'
         this._graph = this._initGraph()
         this._addPlugins()
@@ -130,23 +132,26 @@ export default class X6Tool {
             this._createMinimap()
         }
 
-        // const cellContextMenu = this._createCellContextMenu()
         if(opt.edit){
-            this._events = new X6Events(this._graph,container)
+            this._events = new ToolBar(this._graph,container)
         }
-        // new X6Shortkeys(this._graph)
-
         inserCss()
     }
 
     private _initGraph() {
+        const boxDom = document.createElement('div')
+        boxDom.className = 'containerBox'
+        const parentDiv = document.createElement('div')
+        parentDiv.style.cssText = 'width:100%;height:100%;'
         const graphDom = document.createElement('div')
-        graphDom.style.cssText = 'flex:1;'
-        // graphDom.style.cssText = 'width:100%;height:100%;'
-        this._el.appendChild(graphDom)
+        graphDom.style.cssText = 'width:100%;height:100%;'
+        parentDiv.appendChild(graphDom)
+        boxDom.appendChild(parentDiv)
+        this._el.appendChild(boxDom)
         const graph: Graph = new Graph({
             container: graphDom,
             autoResize: true,
+            scaling:{min:0.5,max:4},
             connecting: {
                 router: 'manhattan', //直角连线
                 connector: {
@@ -166,6 +171,10 @@ export default class X6Tool {
                                 strokeWidth: 2,
                             },
                         },
+                        tools:[
+                            {name: 'vertices'},
+                            {name: 'button-remove'}
+                        ],
                         zIndex: -1,
                     })
                 },
@@ -184,7 +193,7 @@ export default class X6Tool {
                 }
             },
             grid: {
-                size: 10,
+                size: 20,
                 visible: true,
                 type: 'mesh',
                 args: {
@@ -196,10 +205,17 @@ export default class X6Tool {
                 color: '#F2F7FA',
             },
             panning: true, //平移
-            mousewheel: true //滚轮缩放
+            mousewheel: {
+                enabled: true,
+                modifiers: ['alt', 'meta'],
+              }
         })
-
-        
+          
+          const pannable = document.querySelector('.x6-graph-pannable') as HTMLElement
+          setTimeout(()=>{
+              pannable.style.cssText = 'width:100%;height:100%;'
+              graph.centerContent()
+        },500)
         return graph
     }
 
@@ -209,18 +225,15 @@ export default class X6Tool {
      * @memberof X6Tool
      */
     private _addPlugins() {
-
-        this._graph.use(
-            new Scroller({  //滚动条，小地图需要
-                enabled: true,
-                pageVisible: true,
-                pageBreak: true,
-                pannable: true,
-            }),
-
-        )
-
         if(this.type =='edit'){
+
+            this._graph.use(
+                new Scroller({  //滚动条，小地图需要
+                    enabled: true,
+                    pannable: true,
+                    padding:{top: 200, right: 800, bottom: 200, left: 800}
+                }),
+            )
             this._graph.use(
                 new Snapline({ //水平线 
                     enabled: true,
@@ -249,6 +262,11 @@ export default class X6Tool {
                     enabled: true,
                 }),
             )
+
+            
+            this._graph.use(
+                new Export(),
+            )
     
             this._graph.use(
                 new Transform({ //节点变形
@@ -265,6 +283,7 @@ export default class X6Tool {
                     }
                 }),
             )
+
         }
     }
 
@@ -298,7 +317,7 @@ export default class X6Tool {
      * @param stencilContainer HTMLElement
      * @param groupData stencilData
      */
-    public initStencil(groupData: stencilData) {
+    public async initStencil(groupData: stencilData) {
         const stencilContainer = document.createElement('div')
         stencilContainer.style.cssText = 'width:16rem;position:relative;'
         this._el.insertBefore(stencilContainer,this._el.firstChild)
@@ -321,10 +340,13 @@ export default class X6Tool {
         })
 
         stencilContainer?.appendChild(stencil.container)
-
-        groupData.forEach(item => {
+        for(let i=0;i<groupData.length;i++){
             const data: Node[] = []
-            item.datas.forEach(child => {
+
+            const item = groupData[i]
+            for(let j=0;j<item.datas.length;j++){
+                const child = item.datas[j]
+                const imageData = await this.tansform2Base64(child.file)
                 const img = this._graph.createNode({
                     shape: 'image',
                     height: 40,
@@ -334,7 +356,7 @@ export default class X6Tool {
                     },
                     attrs: {
                         image: {
-                            'xlink:href':child.file,
+                            'href':imageData 
                         },
                         label:{
                             ref:'image',
@@ -346,10 +368,11 @@ export default class X6Tool {
                     },
                     ports,
                 })
+
                 data.push(img)
-            })
+            }
             stencil.load(data, item.name)
-        })
+        }
 
         if(this.type =='edit'){
             stencilContainer.addEventListener('click',()=>{
@@ -360,6 +383,26 @@ export default class X6Tool {
             })
         }
 
+    }
+
+    private tansform2Base64(url:string):Promise<string>{
+        return new Promise((resolve,reject)=>{
+            const img = new Image()
+            img.src = url
+            img.onload=()=>{
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img,0,0);
+                const data = canvas.toDataURL();
+                resolve(data)
+            }
+            img.onerror=()=>{
+                reject('图片加载失败')
+            }
+        })
+        // return url
     }
 
     //获取graph实例

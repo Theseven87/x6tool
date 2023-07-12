@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,6 +26,7 @@
   "dependencies": {
     "@antv/x6": "^2.11.4",
     "@antv/x6-plugin-clipboard": "^2.1.6",
+    "@antv/x6-plugin-export": "^2.1.6",
     "@antv/x6-plugin-history": "^2.2.3",
     "@antv/x6-plugin-keyboard": "^2.2.1",
     "@antv/x6-plugin-minimap": "^2.0.5",

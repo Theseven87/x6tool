@@ -2,7 +2,7 @@ import { Graph, Cell } from '@antv/x6';
 export default class X6Shortkeys {
     protected _graph: Graph;
     constructor(graph: Graph);
-    private initShortkeys;
+    private _initShortkeys;
     protected removeCells(cell?: Cell[]): void;
     protected copyCells(cell?: Cell[]): void;
     protected pasteCells(options?: {
@@ -17,4 +17,7 @@ export default class X6Shortkeys {
     protected downZIndex(cell?: Cell): void;
     protected toFront(cell?: Cell): void;
     protected toBack(cell?: Cell): void;
+    protected exportSVG(): void;
+    protected exportPNG(): void;
+    protected exportJPEG(): void;
 }

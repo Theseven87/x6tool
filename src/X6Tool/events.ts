@@ -34,13 +34,13 @@ export default class X6Events extends contextMenu {
             this.showContextMenu(1, { x: e.clientX + 40, y: e.clientY })
             this.hiddenContextMenu(2)
         })
-        
+
         //右键空白区域
-        this._graph.on('blank:contextmenu', ({ e, x, y}) => {
+        this._graph.on('blank:contextmenu', ({ e, x, y }) => {
             this.hiddenContextMenu(1)
             this.contexMenuX = x
             this.contexMenuY = y
-            this.showContextMenu(2,{ x: e.clientX + 40, y: e.clientY })
+            this.showContextMenu(2, { x: e.clientX + 40, y: e.clientY })
         })
     }
 
@@ -51,7 +51,7 @@ export default class X6Events extends contextMenu {
      * @returns 
      */
     private _findParent(dom: HTMLElement, callBack: Function) {
-        if(dom && dom.classList){
+        if (dom && dom.classList) {
             if (dom.classList.value.includes('x6-node')) {
                 callBack && callBack(dom)
             } else {
@@ -82,7 +82,7 @@ export default class X6Events extends contextMenu {
         })
     }
 
-    public getSelectedCell(){
+    public getSelectedCell() {
         return this.selectedCell
     }
 
