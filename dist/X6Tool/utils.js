@@ -8,7 +8,7 @@ function registerEdge() {
         attrs: {
             line: {
                 stroke: '#C2C8D5',
-                strokeWidth: 1,
+                strokeWidth: 2,
                 targetMarker: null,
             },
         },
@@ -17,9 +17,7 @@ function registerEdge() {
 function inserCss() {
     document.head.insertAdjacentHTML('beforeend', `<style type="text/css">
             .containerBox{
-                /* width:calc(100% - 16rem);*/
                 width:100%;
-                /* position:relative; */
             }
             .x6-graph-scroller::-webkit-scrollbar {
                 width: 6px;

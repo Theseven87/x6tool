@@ -21,5 +21,4 @@ export default class X6Events extends contextMenu {
      */
     private _updatePorts;
     private _onAddCell;
-    getSelectedCell(): import("@antv/x6").Cell<import("@antv/x6").Cell.Properties> | null;
 }

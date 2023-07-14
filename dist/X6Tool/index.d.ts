@@ -1,4 +1,4 @@
-import { Graph } from '@antv/x6';
+import { Graph, Cell } from '@antv/x6';
 type stencilData = Array<{
     id: string;
     name: string;
@@ -9,8 +9,8 @@ type stencilData = Array<{
     }>;
 }>;
 type x6ToolParams = {
-    minimap: boolean;
-    edit: boolean;
+    minimap?: boolean;
+    edit?: boolean;
 };
 export default class X6Tool {
     private _graph;
@@ -35,5 +35,9 @@ export default class X6Tool {
     initStencil(groupData: stencilData): Promise<void>;
     private tansform2Base64;
     getInstance(): Graph;
+    selectedCell(): Cell<Cell.Properties> | null;
+    getSimpleData(): Cell.Properties[];
+    getFullData(): Cell.Properties[];
+    importData(data: Cell.Properties[]): void;
 }
 export {};

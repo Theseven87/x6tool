@@ -103,6 +103,18 @@ const ports = {
         },
     ],
 };
+const tools = [
+    {
+        name: 'vertices',
+        args: {
+            stopPropagation: false
+        }
+    },
+    {
+        name: 'button-remove',
+        args: { distance: -40 }
+    }
+];
 const defaultParams = {
     minimap: true,
     edit: true
@@ -135,10 +147,17 @@ export default class X6Tool {
         boxDom.appendChild(parentDiv);
         this._el.appendChild(boxDom);
         const graph = new Graph({
-            container: graphDom,
-            autoResize: true,
-            scaling: { min: 0.5, max: 4 },
             connecting: {
+                createEdge() {
+                    return graph.createEdge({
+                        shape: 'dag-edge',
+                        data: {
+                            type: 'edge'
+                        },
+                        tools,
+                        zIndex: -1,
+                    });
+                },
                 router: 'manhattan',
                 connector: {
                     name: 'rounded',
@@ -149,25 +168,13 @@ export default class X6Tool {
                 snap: {
                     radius: 50, //连线距离节点20px自动吸附
                 },
-                createEdge() {
-                    return graph.createEdge({
-                        shape: 'dag-edge',
-                        attrs: {
-                            line: {
-                                strokeWidth: 2,
-                            },
-                        },
-                        tools: [
-                            { name: 'vertices' },
-                            { name: 'button-remove' }
-                        ],
-                        zIndex: -1,
-                    });
-                },
                 allowNode: false,
                 allowBlank: false,
                 highlight: true,
             },
+            container: graphDom,
+            autoResize: true,
+            scaling: { min: 0.5, max: 4 },
             interacting: () => {
                 if (this.type == 'view') {
                     return {
@@ -198,9 +205,9 @@ export default class X6Tool {
         });
         const pannable = document.querySelector('.x6-graph-pannable');
         setTimeout(() => {
-            pannable.style.cssText = 'width:100%;height:100%;';
-            graph.centerContent();
-        }, 500);
+            // pannable.style.cssText = 'width:100%;height:100%;'
+            graph.center();
+        }, 300);
         return graph;
     }
     /**
@@ -210,11 +217,6 @@ export default class X6Tool {
      */
     _addPlugins() {
         if (this.type == 'edit') {
-            this._graph.use(new Scroller({
-                enabled: true,
-                pannable: true,
-                padding: { top: 200, right: 800, bottom: 200, left: 800 }
-            }));
             this._graph.use(new Snapline({
                 enabled: true,
             }));
@@ -248,6 +250,13 @@ export default class X6Tool {
     }
     /**创建小地图 */
     _createMinimap() {
+        this._graph.use(new Scroller({
+            enabled: true,
+            pannable: true,
+            pageVisible: false,
+            pageBreak: false,
+            // padding: { top: 200, right: 1200, bottom: 200, left: 1200 }
+        }));
         const minimapDom = document.createElement('div');
         minimapDom.style.cssText = `position:absolute;bottom:20px;right:20px`;
         this._el.appendChild(minimapDom);
@@ -255,6 +264,7 @@ export default class X6Tool {
             container: minimapDom,
             width: 200,
             height: 160,
+            padding: 10
         }));
         if (this.type == 'edit') {
             minimapDom.addEventListener('click', () => {
@@ -304,7 +314,8 @@ export default class X6Tool {
                         height: 40,
                         width: 40,
                         data: {
-                            label: child.label
+                            label: child.label,
+                            type: 'cell'
                         },
                         attrs: {
                             image: {
@@ -356,5 +367,63 @@ export default class X6Tool {
     //获取graph实例
     getInstance() {
         return this._graph;
+    }
+    selectedCell() {
+        const cells = this._graph.getSelectedCells();
+        if (cells && cells.length) {
+            return cells[0];
+        }
+        return null;
+    }
+    getSimpleData() {
+        const data = this._graph.toJSON();
+        const cells = data.cells;
+        const res = [];
+        cells.forEach(item => {
+            const tempItem = {
+                data: item.data,
+                zIndex: item.zIndex,
+                id: item.id,
+                shape: item.shape
+            };
+            if (item.data.type == 'edge') {
+                tempItem.source = item.source;
+                tempItem.target = item.target;
+            }
+            if (item.data.type == 'cell') {
+                tempItem.attrs = item.attrs;
+                tempItem.position = item.position;
+                tempItem.size = item.size;
+                tempItem.visible = item.visible;
+            }
+            res.push(tempItem);
+        });
+        return res;
+    }
+    getFullData() {
+        const data = this._graph.toJSON();
+        const cells = data.cells;
+        return cells;
+    }
+    importData(data) {
+        data.forEach((item) => {
+            if (item.data.type === 'edge') {
+                if (this.type == 'edit') {
+                    item.tools = tools;
+                    item.attrs = {
+                        line: {
+                            strokeWidth: 2
+                        }
+                    };
+                    item.router = {
+                        name: "manhattan"
+                    };
+                }
+            }
+            if (item.data.type === 'cell') {
+                item.ports = ports;
+            }
+        });
+        this._graph.fromJSON({ cells: data });
     }
 }

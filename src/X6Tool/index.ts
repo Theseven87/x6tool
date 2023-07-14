@@ -1,4 +1,4 @@
-import { Graph, Node } from '@antv/x6'
+import { Graph, Node, Cell, Edge } from '@antv/x6'
 import { Snapline } from '@antv/x6-plugin-snapline'  //对齐线
 import { MiniMap } from '@antv/x6-plugin-minimap'   //小地图    
 import { Scroller } from '@antv/x6-plugin-scroller' //滚动条
@@ -9,7 +9,7 @@ import { Selection } from '@antv/x6-plugin-selection'   //选择
 import { Clipboard } from '@antv/x6-plugin-clipboard'   //复制粘贴
 import { History } from '@antv/x6-plugin-history' //撤销重做
 import { Export } from '@antv/x6-plugin-export' //导出
-import { registerEdge,inserCss } from './utils'     //工具
+import { registerEdge, inserCss } from './utils'     //工具
 // import X6Events from './events' //事件处理
 import ToolBar from './toolbar'
 const ports = {
@@ -95,6 +95,19 @@ const ports = {
     ],
 }
 
+const tools: Cell.ToolItem[] = [
+    {
+        name: 'vertices',
+        args: {
+            stopPropagation: false
+        }
+    },
+    {
+        name: 'button-remove',
+        args: { distance: -40 }
+    }
+]
+
 type stencilData = Array<{
     id: string,
     name: string,
@@ -106,34 +119,33 @@ type stencilData = Array<{
 }>
 
 type x6ToolParams = {
-    minimap: boolean,
-    edit:boolean
+    minimap?: boolean,
+    edit?: boolean
 }
 
-const defaultParams:x6ToolParams = {
-    minimap:true,
-    edit:true
+const defaultParams: x6ToolParams = {
+    minimap: true,
+    edit: true
 }
 export default class X6Tool {
     private _graph: Graph
     public _el: HTMLElement
     private _events
-    private type:'view'|'edit'
+    private type: 'view' | 'edit'
     constructor(container: HTMLElement, options?: x6ToolParams) {
-        const opt = Object.assign({},defaultParams,options)
+        const opt = Object.assign({}, defaultParams, options)
         registerEdge()
         this._el = container
         this._el.style.cssText = 'display:flex;'
-        this.type = opt.edit?'edit':'view'
+        this.type = opt.edit ? 'edit' : 'view'
         this._graph = this._initGraph()
         this._addPlugins()
-
-        if(opt.minimap){
+        if (opt.minimap) {
             this._createMinimap()
         }
 
-        if(opt.edit){
-            this._events = new ToolBar(this._graph,container)
+        if (opt.edit) {
+            this._events = new ToolBar(this._graph, container)
         }
         inserCss()
     }
@@ -149,10 +161,17 @@ export default class X6Tool {
         boxDom.appendChild(parentDiv)
         this._el.appendChild(boxDom)
         const graph: Graph = new Graph({
-            container: graphDom,
-            autoResize: true,
-            scaling:{min:0.5,max:4},
             connecting: {
+                createEdge() {
+                    return graph.createEdge({
+                        shape: 'dag-edge',
+                        data: {
+                            type: 'edge'
+                        },
+                        tools,
+                        zIndex: -1,
+                    })
+                },
                 router: 'manhattan', //直角连线
                 connector: {
                     name: 'rounded', //转角使用圆角
@@ -163,33 +182,21 @@ export default class X6Tool {
                 snap: {
                     radius: 50, //连线距离节点20px自动吸附
                 },
-                createEdge() {
-                    return graph.createEdge({
-                        shape: 'dag-edge',
-                        attrs: {
-                            line: {
-                                strokeWidth: 2,
-                            },
-                        },
-                        tools:[
-                            {name: 'vertices'},
-                            {name: 'button-remove'}
-                        ],
-                        zIndex: -1,
-                    })
-                },
                 allowNode: false, //是否允许边连接到节点
                 allowBlank: false, //是否允许连线到空白区域
                 highlight: true,
             },
-            interacting:()=>{
-                if(this.type=='view'){
+            container: graphDom,
+            autoResize: true,
+            scaling: { min: 0.5, max: 4 },
+            interacting: () => {
+                if (this.type == 'view') {
                     return {
-                        nodeMovable:false
+                        nodeMovable: false
                     }
                 }
                 return {
-                    nodeMovable:true
+                    nodeMovable: true
                 }
             },
             grid: {
@@ -208,14 +215,14 @@ export default class X6Tool {
             mousewheel: {
                 enabled: true,
                 modifiers: ['alt', 'meta'],
-              }
+            }
         })
-          
-          const pannable = document.querySelector('.x6-graph-pannable') as HTMLElement
-          setTimeout(()=>{
-              pannable.style.cssText = 'width:100%;height:100%;'
-              graph.centerContent()
-        },500)
+
+        const pannable = document.querySelector('.x6-graph-pannable') as HTMLElement
+        setTimeout(() => {
+            // pannable.style.cssText = 'width:100%;height:100%;'
+            graph.center()
+        }, 300)
         return graph
     }
 
@@ -225,15 +232,8 @@ export default class X6Tool {
      * @memberof X6Tool
      */
     private _addPlugins() {
-        if(this.type =='edit'){
+        if (this.type == 'edit') {
 
-            this._graph.use(
-                new Scroller({  //滚动条，小地图需要
-                    enabled: true,
-                    pannable: true,
-                    padding:{top: 200, right: 800, bottom: 200, left: 800}
-                }),
-            )
             this._graph.use(
                 new Snapline({ //水平线 
                     enabled: true,
@@ -244,30 +244,30 @@ export default class X6Tool {
                     enabled: true,
                 }),
             )
-    
+
             this._graph.use(
                 new Selection({
                     enabled: true,
                 }),
             )
-    
+
             this._graph.use(
                 new Clipboard({
                     enabled: true,
                 }),
             )
-    
+
             this._graph.use(
                 new History({
                     enabled: true,
                 }),
             )
 
-            
+
             this._graph.use(
                 new Export(),
             )
-    
+
             this._graph.use(
                 new Transform({ //节点变形
                     resizing: {
@@ -289,6 +289,15 @@ export default class X6Tool {
 
     /**创建小地图 */
     private _createMinimap() {
+        this._graph.use(
+            new Scroller({  //滚动条，小地图需要
+                enabled: true,
+                pannable: true,
+                pageVisible: false,
+                pageBreak: false,
+                // padding: { top: 200, right: 1200, bottom: 200, left: 1200 }
+            }),
+        )
         const minimapDom = document.createElement('div');
         minimapDom.style.cssText = `position:absolute;bottom:20px;right:20px`
         this._el.appendChild(minimapDom)
@@ -298,14 +307,15 @@ export default class X6Tool {
                 container: minimapDom,
                 width: 200,
                 height: 160,
+                padding: 10
             }),
         )
 
-        if(this.type =='edit'){
-            minimapDom.addEventListener('click',()=>{
+        if (this.type == 'edit') {
+            minimapDom.addEventListener('click', () => {
                 this._events!.hiddenContextMenu()
             })
-            minimapDom.addEventListener('contextmenu',()=>{
+            minimapDom.addEventListener('contextmenu', () => {
                 this._events!.hiddenContextMenu()
             })
         }
@@ -320,7 +330,7 @@ export default class X6Tool {
     public async initStencil(groupData: stencilData) {
         const stencilContainer = document.createElement('div')
         stencilContainer.style.cssText = 'width:16rem;position:relative;'
-        this._el.insertBefore(stencilContainer,this._el.firstChild)
+        this._el.insertBefore(stencilContainer, this._el.firstChild)
         const stencil = new Stencil({
             title: '模型',
             search(cell, keyword) {
@@ -340,11 +350,11 @@ export default class X6Tool {
         })
 
         stencilContainer?.appendChild(stencil.container)
-        for(let i=0;i<groupData.length;i++){
+        for (let i = 0; i < groupData.length; i++) {
             const data: Node[] = []
 
             const item = groupData[i]
-            for(let j=0;j<item.datas.length;j++){
+            for (let j = 0; j < item.datas.length; j++) {
                 const child = item.datas[j]
                 const imageData = await this.tansform2Base64(child.file)
                 const img = this._graph.createNode({
@@ -352,18 +362,19 @@ export default class X6Tool {
                     height: 40,
                     width: 40,
                     data: {
-                        label: child.label
+                        label: child.label,
+                        type: 'cell'
                     },
                     attrs: {
                         image: {
-                            'href':imageData 
+                            'href': imageData
                         },
-                        label:{
-                            ref:'image',
-                            text:child.label,
-                            refX:'50%',
-                            refY:'100%',
-                            y:'20'
+                        label: {
+                            ref: 'image',
+                            text: child.label,
+                            refX: '50%',
+                            refY: '100%',
+                            y: '20'
                         },
                     },
                     ports,
@@ -374,31 +385,31 @@ export default class X6Tool {
             stencil.load(data, item.name)
         }
 
-        if(this.type =='edit'){
-            stencilContainer.addEventListener('click',()=>{
+        if (this.type == 'edit') {
+            stencilContainer.addEventListener('click', () => {
                 this._events!.hiddenContextMenu()
             })
-            stencilContainer.addEventListener('contextmenu',()=>{
+            stencilContainer.addEventListener('contextmenu', () => {
                 this._events!.hiddenContextMenu()
             })
         }
 
     }
 
-    private tansform2Base64(url:string):Promise<string>{
-        return new Promise((resolve,reject)=>{
+    private tansform2Base64(url: string): Promise<string> {
+        return new Promise((resolve, reject) => {
             const img = new Image()
             img.src = url
-            img.onload=()=>{
+            img.onload = () => {
                 const canvas = document.createElement('canvas');
                 canvas.width = img.width;
                 canvas.height = img.height;
                 const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img,0,0);
+                ctx?.drawImage(img, 0, 0);
                 const data = canvas.toDataURL();
                 resolve(data)
             }
-            img.onerror=()=>{
+            img.onerror = () => {
                 reject('图片加载失败')
             }
         })
@@ -408,5 +419,68 @@ export default class X6Tool {
     //获取graph实例
     public getInstance(): Graph {
         return this._graph
+    }
+
+    public selectedCell() {
+        const cells = this._graph.getSelectedCells()
+        if (cells && cells.length) {
+            return cells[0]
+        }
+        return null
+    }
+
+    public getSimpleData() {
+        const data = this._graph.toJSON()
+        const cells = data.cells
+        const res: Cell.Properties[] = []
+        cells.forEach(item => {
+            const tempItem: any = {
+                data: item.data,
+                zIndex: item.zIndex,
+                id: item.id,
+                shape: item.shape
+            }
+            if (item.data.type == 'edge') {
+                tempItem.source = item.source
+                tempItem.target = item.target
+            }
+
+            if (item.data.type == 'cell') {
+                tempItem.attrs = item.attrs
+                tempItem.position = item.position
+                tempItem.size = item.size
+                tempItem.visible = item.visible
+            }
+            res.push(tempItem)
+        })
+        return res
+    }
+
+    public getFullData() {
+        const data = this._graph.toJSON()
+        const cells = data.cells
+        return cells
+    }
+
+    public importData(data: Cell.Properties[]) {
+        data.forEach((item: any) => {
+            if (item.data.type === 'edge') {
+                if (this.type == 'edit') {
+                    item.tools = tools
+                    item.attrs = {
+                        line: {
+                            strokeWidth: 2
+                        }
+                    }
+                    item.router = {
+                        name: "manhattan"
+                    }
+                }
+            }
+            if (item.data.type === 'cell') {
+                item.ports = ports
+            }
+        })
+        this._graph.fromJSON({ cells: data })
     }
 }

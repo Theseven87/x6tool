@@ -35,6 +35,9 @@ export default class X6Events extends contextMenu {
             this.contexMenuY = y;
             this.showContextMenu(2, { x: e.clientX + 40, y: e.clientY });
         });
+        this._graph.on('cell:click', ({ cell }) => {
+            this.selectedCell = cell;
+        });
     }
     /**
      * 获取当前指针指向的元素的class包含x6-node的父元素
@@ -70,8 +73,5 @@ export default class X6Events extends contextMenu {
             this.hiddenContextMenu();
             node.size(80, 80);
         });
-    }
-    getSelectedCell() {
-        return this.selectedCell;
     }
 }

@@ -1,4 +1,4 @@
-import { Graph } from '@antv/x6'
+import { Graph,Cell } from '@antv/x6'
 import contextMenu from './contextMenu'
 export default class X6Events extends contextMenu {
     private _container: HTMLElement
@@ -42,6 +42,10 @@ export default class X6Events extends contextMenu {
             this.contexMenuY = y
             this.showContextMenu(2, { x: e.clientX + 40, y: e.clientY })
         })
+
+        this._graph.on('cell:click',({cell})=>{
+            this.selectedCell = cell
+        })
     }
 
     /**
@@ -80,10 +84,6 @@ export default class X6Events extends contextMenu {
             this.hiddenContextMenu()
             node.size(80, 80)
         })
-    }
-
-    public getSelectedCell() {
-        return this.selectedCell
     }
 
 }
