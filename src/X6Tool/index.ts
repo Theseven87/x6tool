@@ -97,10 +97,10 @@ const ports = {
 
 const tools: Cell.ToolItem[] = [
     {
-        name: 'vertices',
-        args: {
-            stopPropagation: false
-        }
+        name: 'segments',
+        // args: {
+        //     stopPropagation: false
+        // }
     },
     {
         name: 'button-remove',

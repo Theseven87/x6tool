@@ -101,6 +101,8 @@ function inserCss() {
                 margin-right: 4px;
             }
             .toolBox>img{
+                width:24px;
+                height:24px;
                 cursor: pointer;
                 opacity:0.5;
                 transition:0.5s;

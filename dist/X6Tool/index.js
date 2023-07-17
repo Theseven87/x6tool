@@ -105,10 +105,10 @@ const ports = {
 };
 const tools = [
     {
-        name: 'vertices',
-        args: {
-            stopPropagation: false
-        }
+        name: 'segments',
+        // args: {
+        //     stopPropagation: false
+        // }
     },
     {
         name: 'button-remove',
