@@ -105,10 +105,10 @@ const ports = {
 };
 const tools = [
     {
-        name: 'segments',
-        // args: {
-        //     stopPropagation: false
-        // }
+        name: 'vertices',
+        args: {
+            stopPropagation: false
+        }
     },
     {
         name: 'button-remove',
@@ -158,7 +158,7 @@ export default class X6Tool {
                         zIndex: -1,
                     });
                 },
-                router: 'manhattan',
+                router: 'orth',
                 connector: {
                     name: 'rounded',
                     args: {
@@ -170,6 +170,7 @@ export default class X6Tool {
                 },
                 allowNode: false,
                 allowBlank: false,
+                allowLoop: false,
                 highlight: true,
             },
             container: graphDom,
@@ -197,7 +198,7 @@ export default class X6Tool {
             background: {
                 color: '#F2F7FA',
             },
-            panning: true,
+            panning: false,
             mousewheel: {
                 enabled: true,
                 modifiers: ['alt', 'meta'],

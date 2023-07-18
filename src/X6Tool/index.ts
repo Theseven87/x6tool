@@ -97,10 +97,10 @@ const ports = {
 
 const tools: Cell.ToolItem[] = [
     {
-        name: 'segments',
-        // args: {
-        //     stopPropagation: false
-        // }
+        name: 'vertices',
+        args: {
+            stopPropagation: false
+        }
     },
     {
         name: 'button-remove',
@@ -172,7 +172,7 @@ export default class X6Tool {
                         zIndex: -1,
                     })
                 },
-                router: 'manhattan', //直角连线
+                router: 'orth', //直角连线
                 connector: {
                     name: 'rounded', //转角使用圆角
                     args: {
@@ -184,6 +184,7 @@ export default class X6Tool {
                 },
                 allowNode: false, //是否允许边连接到节点
                 allowBlank: false, //是否允许连线到空白区域
+                allowLoop:false,    //是否允许创建循环连线
                 highlight: true,
             },
             container: graphDom,
@@ -211,7 +212,7 @@ export default class X6Tool {
             background: {
                 color: '#F2F7FA',
             },
-            panning: true, //平移
+            panning: false, //平移
             mousewheel: {
                 enabled: true,
                 modifiers: ['alt', 'meta'],

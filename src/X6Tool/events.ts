@@ -2,9 +2,11 @@ import { Graph,Cell } from '@antv/x6'
 import contextMenu from './contextMenu'
 export default class X6Events extends contextMenu {
     private _container: HTMLElement
+    // private _selectedEvent:CustomEvent;
     constructor(graph: Graph, container: HTMLElement) {
         super(graph, container)
         this._container = container
+        // this._selectedEvent = this._regesiterEvent()
         this._mouseEventNode()
         this._onAddCell()
     }
@@ -43,9 +45,31 @@ export default class X6Events extends contextMenu {
             this.showContextMenu(2, { x: e.clientX + 40, y: e.clientY })
         })
 
-        this._graph.on('cell:click',({cell})=>{
-            this.selectedCell = cell
+
+        this._graph.on('edge:mouseenter',({edge})=>{
+            edge.setAttrByPath('line',{stroke:'#1890ff'})
         })
+
+        this._graph.on('edge:mouseleave',({edge})=>{
+            edge.setAttrByPath('line',{stroke:'#C2C8D5'})
+        })
+
+        this._graph.on('cell:selected',({cell})=>{
+            this.selectedCell = cell
+            if(cell.data.type==='edge'){
+                cell.setAttrByPath('line',{stroke:'#1890ff',strokeWidth:2.5})
+            }
+            const selectedEvent = new CustomEvent('selected',{detail:cell})
+            dispatchEvent(selectedEvent)
+        })
+        this._graph.on('cell:unselected',({cell})=>{
+            this.selectedCell = null
+            cell.setAttrByPath('line',{stroke:'#C2C8D5',strokeWidth:2})
+            const selectedEvent = new CustomEvent('selected',{detail:null})
+            dispatchEvent(selectedEvent)
+        })
+
+
     }
 
     /**

@@ -5,9 +5,6 @@ function registerEdge() {
         'dag-edge',
         {
             inherit: 'edge',
-            router: {
-                name: 'manhattan',
-            },
             attrs: {
                 line: {
                     stroke: '#C2C8D5',
@@ -42,12 +39,7 @@ function inserCss() {
                 box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
                 background: transparent;
             }
-
-            .x6-edge:hover path:nth-child(2){
-                stroke: #1890ff;
-                stroke-width: 1px;
-            }
-                    
+             
             .x6-edge-selected >path:nth-child(2){
                 stroke: #1890ff;
                 stroke-width: 1.5px !important;

@@ -1,6 +1,6 @@
 {
   "name": "x6tool",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "基于AntV-X6封装的拓扑图编辑器",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -9,6 +9,7 @@
     "dist"
   ],
   "scripts": {
+    "build-publish":"npm run build && npm publish",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
