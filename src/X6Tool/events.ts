@@ -37,7 +37,7 @@ export default class X6Events extends contextMenu {
                     },
                     {
                       tagName: 'text',
-                      textContent: 'Btn B',
+                      textContent: 'color',
                       selector: 'icon',
                       attrs: {
                         fill: '#fe854f',
