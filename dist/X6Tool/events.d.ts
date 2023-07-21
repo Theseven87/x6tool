@@ -1,8 +1,10 @@
-import { Graph } from '@antv/x6';
+import { Graph, Cell } from '@antv/x6';
 import contextMenu from './contextMenu';
 export default class X6Events extends contextMenu {
     private _container;
-    constructor(graph: Graph, container: HTMLElement);
+    private _defaultEdgeStyle;
+    private _edgeTools;
+    constructor(graph: Graph, container: HTMLElement, changeEdgeColorCallBack: Function);
     /**
  * 鼠标事件
  */
@@ -21,4 +23,5 @@ export default class X6Events extends contextMenu {
      */
     private _updatePorts;
     private _onAddCell;
+    updateEdgeColor(edge: Cell, color: string): void;
 }

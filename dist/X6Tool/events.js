@@ -1,9 +1,61 @@
 import contextMenu from './contextMenu';
 export default class X6Events extends contextMenu {
     // private _selectedEvent:CustomEvent;
-    constructor(graph, container) {
+    constructor(graph, container, changeEdgeColorCallBack) {
         super(graph, container);
+        this._edgeTools = [
+            {
+                name: 'vertices',
+                args: {
+                    stopPropagation: false
+                }
+            },
+            {
+                name: 'button-remove',
+                args: { distance: -80 }
+            },
+            {
+                name: 'button',
+                args: {
+                    markup: [
+                        {
+                            tagName: 'circle',
+                            selector: 'button',
+                            attrs: {
+                                r: 18,
+                                stroke: '#fe854f',
+                                strokeWidth: 2,
+                                fill: 'white',
+                                cursor: 'pointer',
+                            },
+                        },
+                        {
+                            tagName: 'text',
+                            textContent: 'Btn B',
+                            selector: 'icon',
+                            attrs: {
+                                fill: '#fe854f',
+                                fontSize: 10,
+                                textAnchor: 'middle',
+                                pointerEvents: 'none',
+                                y: '0.3em',
+                            },
+                        },
+                    ],
+                    distance: -40,
+                    //   onClick({ view }: { view: EdgeView }) {
+                    //     const edge = view.cell
+                    //     changeEdgeColorCallBack && changeEdgeColorCallBack(edge)
+                    //   },
+                    onClick({ view, e }) {
+                        const edge = view.cell;
+                        changeEdgeColorCallBack && changeEdgeColorCallBack(e, edge);
+                    }
+                },
+            }
+        ];
         this._container = container;
+        this._defaultEdgeStyle = {};
         // this._selectedEvent = this._regesiterEvent()
         this._mouseEventNode();
         this._onAddCell();
@@ -37,11 +89,18 @@ export default class X6Events extends contextMenu {
             this.contexMenuY = y;
             this.showContextMenu(2, { x: e.clientX + 40, y: e.clientY });
         });
+        //移入边
         this._graph.on('edge:mouseenter', ({ edge }) => {
+            if (!this._defaultEdgeStyle[edge.id]) {
+                this._defaultEdgeStyle[edge.id] = edge.getAttrByPath('line/stroke') || '#C2C8D5';
+            }
             edge.setAttrByPath('line', { stroke: '#1890ff' });
+            edge.addTools(this._edgeTools);
         });
+        //移出边
         this._graph.on('edge:mouseleave', ({ edge }) => {
-            edge.setAttrByPath('line', { stroke: '#C2C8D5' });
+            edge.setAttrByPath('line', { stroke: this._defaultEdgeStyle[edge.id] });
+            edge.removeTools();
         });
         this._graph.on('cell:selected', ({ cell }) => {
             this.selectedCell = cell;
@@ -53,7 +112,9 @@ export default class X6Events extends contextMenu {
         });
         this._graph.on('cell:unselected', ({ cell }) => {
             this.selectedCell = null;
-            cell.setAttrByPath('line', { stroke: '#C2C8D5', strokeWidth: 2 });
+            if (cell.data.type === 'edge') {
+                cell.setAttrByPath('line', { stroke: this._defaultEdgeStyle[cell.id], strokeWidth: 2 });
+            }
             const selectedEvent = new CustomEvent('selected', { detail: null });
             dispatchEvent(selectedEvent);
         });
@@ -92,5 +153,9 @@ export default class X6Events extends contextMenu {
             this.hiddenContextMenu();
             node.size(80, 80);
         });
+    }
+    updateEdgeColor(edge, color) {
+        this._defaultEdgeStyle[edge.id] = color;
+        edge.setAttrByPath('line', { stroke: color });
     }
 }

@@ -177,7 +177,7 @@ export default class X6Shortkeys {
         this._graph.exportSVG('chart', {
             beforeSerialize: function (svg) {
                 const viewport = svg.querySelector('.x6-graph-svg-viewport');
-                viewport === null || viewport === void 0 ? void 0 : viewport.setAttribute('transform', 'matrix(0.9,0,0,0.9,50,-50)');
+                viewport === null || viewport === void 0 ? void 0 : viewport.setAttribute('transform', 'matrix(0.7,0,0,0.7,0,90)');
             }
         });
     }

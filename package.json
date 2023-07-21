@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build-publish":"npm run build && npm publish",
+    "build-publish": "npm run build && npm publish",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -35,6 +35,7 @@
     "@antv/x6-plugin-selection": "^2.1.7",
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-plugin-stencil": "^2.0.4",
-    "@antv/x6-plugin-transform": "^2.1.7"
+    "@antv/x6-plugin-transform": "^2.1.7",
+    "@easylogic/colorpicker": "^1.10.11"
   }
 }

@@ -44,8 +44,8 @@ const toolbarConfig = [
     },
 ]
 export default class ToolBar extends X6Events {
-    constructor(graph: Graph, container: HTMLElement) {
-        super(graph, container)
+    constructor(graph: Graph, container: HTMLElement,changeEdgeColorCallBack:Function) {
+        super(graph, container,changeEdgeColorCallBack)
         this._createToolVarElement()
     }
     private _createToolVarElement() {

@@ -1,11 +1,67 @@
-import { Graph,Cell } from '@antv/x6'
+import { Graph,Cell,EdgeView, Edge } from '@antv/x6'
 import contextMenu from './contextMenu'
+
+
 export default class X6Events extends contextMenu {
     private _container: HTMLElement
+    private _defaultEdgeStyle:{[key:string]:string}
+    private _edgeTools:Cell.ToolItem[]
     // private _selectedEvent:CustomEvent;
-    constructor(graph: Graph, container: HTMLElement) {
+    constructor(graph: Graph, container: HTMLElement,changeEdgeColorCallBack:Function) {
         super(graph, container)
+        this._edgeTools = [
+            {
+                name: 'vertices',
+                args: {
+                    stopPropagation: false
+                }
+            },
+            {
+                name: 'button-remove',
+                args: { distance: -80 }
+            },
+            {
+                name: 'button',
+                args: {
+                  markup: [
+                    {
+                      tagName: 'circle',
+                      selector: 'button',
+                      attrs: {
+                        r: 18,
+                        stroke: '#fe854f',
+                        strokeWidth: 2,
+                        fill: 'white',
+                        cursor: 'pointer',
+                      },
+                    },
+                    {
+                      tagName: 'text',
+                      textContent: 'Btn B',
+                      selector: 'icon',
+                      attrs: {
+                        fill: '#fe854f',
+                        fontSize: 10,
+                        textAnchor: 'middle',
+                        pointerEvents: 'none',
+                        y: '0.3em',
+                      },
+                    },
+                  ],
+                  distance: -40,
+                //   onClick({ view }: { view: EdgeView }) {
+                //     const edge = view.cell
+                //     changeEdgeColorCallBack && changeEdgeColorCallBack(edge)
+                //   },
+                onClick({view,e}:{view: EdgeView,e:MouseEvent}){
+                    const edge = view.cell
+                    changeEdgeColorCallBack && changeEdgeColorCallBack(e,edge)
+                }
+                },
+              }
+        ]
         this._container = container
+        this._defaultEdgeStyle = {}
         // this._selectedEvent = this._regesiterEvent()
         this._mouseEventNode()
         this._onAddCell()
@@ -46,12 +102,19 @@ export default class X6Events extends contextMenu {
         })
 
 
+        //移入边
         this._graph.on('edge:mouseenter',({edge})=>{
+            if(!this._defaultEdgeStyle[edge.id]){
+                this._defaultEdgeStyle[edge.id] = edge.getAttrByPath('line/stroke')||'#C2C8D5'
+            }
             edge.setAttrByPath('line',{stroke:'#1890ff'})
+            edge.addTools(this._edgeTools)
         })
 
+        //移出边
         this._graph.on('edge:mouseleave',({edge})=>{
-            edge.setAttrByPath('line',{stroke:'#C2C8D5'})
+            edge.setAttrByPath('line',{stroke:this._defaultEdgeStyle[edge.id]})
+            edge.removeTools()
         })
 
         this._graph.on('cell:selected',({cell})=>{
@@ -64,12 +127,12 @@ export default class X6Events extends contextMenu {
         })
         this._graph.on('cell:unselected',({cell})=>{
             this.selectedCell = null
-            cell.setAttrByPath('line',{stroke:'#C2C8D5',strokeWidth:2})
+            if(cell.data.type==='edge'){
+                cell.setAttrByPath('line',{stroke:this._defaultEdgeStyle[cell.id],strokeWidth:2})
+            }
             const selectedEvent = new CustomEvent('selected',{detail:null})
             dispatchEvent(selectedEvent)
         })
-
-
     }
 
     /**
@@ -108,6 +171,11 @@ export default class X6Events extends contextMenu {
             this.hiddenContextMenu()
             node.size(80, 80)
         })
+    }
+
+    public updateEdgeColor(edge:Cell,color:string){
+        this._defaultEdgeStyle[edge.id] = color
+        edge.setAttrByPath('line',{stroke:color})
     }
 
 }

@@ -1,4 +1,5 @@
 import { Graph, Cell } from '@antv/x6';
+import '@easylogic/colorpicker/dist/colorpicker.css';
 type stencilData = Array<{
     id: string;
     name: string;
@@ -39,5 +40,6 @@ export default class X6Tool {
     getSimpleData(): Cell.Properties[];
     getFullData(): Cell.Properties[];
     importData(data: Cell.Properties[]): void;
+    changeEdgeColor(e: MouseEvent, edge: Cell): void;
 }
 export {};

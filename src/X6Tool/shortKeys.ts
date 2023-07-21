@@ -195,7 +195,7 @@ export default class X6Shortkeys {
     this._graph.exportSVG('chart', {
       beforeSerialize: function (this, svg) {
         const viewport = svg.querySelector('.x6-graph-svg-viewport')
-        viewport?.setAttribute('transform', 'matrix(0.9,0,0,0.9,50,-50)')
+        viewport?.setAttribute('transform', 'matrix(0.7,0,0,0.7,0,90)')
       }
     })
   }

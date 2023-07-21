@@ -9,6 +9,9 @@ import { Selection } from '@antv/x6-plugin-selection'   //选择
 import { Clipboard } from '@antv/x6-plugin-clipboard'   //复制粘贴
 import { History } from '@antv/x6-plugin-history' //撤销重做
 import { Export } from '@antv/x6-plugin-export' //导出
+import '@easylogic/colorpicker/dist/colorpicker.css';
+import {ColorPicker} from '@easylogic/colorpicker'
+// import ColorPickerUI from '@easylogic/colorpicker' 
 import { registerEdge, inserCss } from './utils'     //工具
 // import X6Events from './events' //事件处理
 import ToolBar from './toolbar'
@@ -95,18 +98,6 @@ const ports = {
     ],
 }
 
-const tools: Cell.ToolItem[] = [
-    {
-        name: 'vertices',
-        args: {
-            stopPropagation: false
-        }
-    },
-    {
-        name: 'button-remove',
-        args: { distance: -40 }
-    }
-]
 
 type stencilData = Array<{
     id: string,
@@ -127,6 +118,12 @@ const defaultParams: x6ToolParams = {
     minimap: true,
     edit: true
 }
+
+const colorpicker =new ColorPicker({
+    color: 'blue', // init color code 
+    type : 'ColorPicker', // or 'sketch',  default type is 'chromedevtool'
+    outputFormat : 'hex'
+})
 export default class X6Tool {
     private _graph: Graph
     public _el: HTMLElement
@@ -145,7 +142,7 @@ export default class X6Tool {
         }
 
         if (opt.edit) {
-            this._events = new ToolBar(this._graph, container)
+            this._events = new ToolBar(this._graph, container,this.changeEdgeColor.bind(this))
         }
         inserCss()
     }
@@ -168,7 +165,6 @@ export default class X6Tool {
                         data: {
                             type: 'edge'
                         },
-                        tools,
                         zIndex: -1,
                     })
                 },
@@ -215,7 +211,6 @@ export default class X6Tool {
             panning: false, //平移
             mousewheel: {
                 enabled: true,
-                modifiers: ['alt', 'meta'],
             }
         })
 
@@ -296,7 +291,6 @@ export default class X6Tool {
                 pannable: true,
                 pageVisible: false,
                 pageBreak: false,
-                // padding: { top: 200, right: 1200, bottom: 200, left: 1200 }
             }),
         )
         const minimapDom = document.createElement('div');
@@ -433,6 +427,7 @@ export default class X6Tool {
     public getSimpleData() {
         const data = this._graph.toJSON()
         const cells = data.cells
+        console.log(cells)
         const res: Cell.Properties[] = []
         cells.forEach(item => {
             const tempItem: any = {
@@ -441,16 +436,16 @@ export default class X6Tool {
                 id: item.id,
                 shape: item.shape
             }
+            if(item.attrs){
+                tempItem.attrs = item.attrs
+            }
             if (item.data.type == 'edge') {
                 tempItem.source = item.source
                 tempItem.target = item.target
             }
 
             if (item.data.type == 'cell') {
-                tempItem.attrs = item.attrs
                 tempItem.position = item.position
-                tempItem.size = item.size
-                tempItem.visible = item.visible
             }
             res.push(tempItem)
         })
@@ -467,7 +462,6 @@ export default class X6Tool {
         data.forEach((item: any) => {
             if (item.data.type === 'edge') {
                 if (this.type == 'edit') {
-                    item.tools = tools
                     item.attrs = {
                         line: {
                             strokeWidth: 2
@@ -480,8 +474,21 @@ export default class X6Tool {
             }
             if (item.data.type === 'cell') {
                 item.ports = ports
+                item.size = {width: 80, height: 80}
+                item.visible = true
             }
         })
         this._graph.fromJSON({ cells: data })
+    }
+
+    public changeEdgeColor(e:MouseEvent,edge:Cell){
+        const defaultColor =  edge.getAttrByPath('line/stroke')||'#C2C8D5'
+        colorpicker.show({
+            left :e.clientX,
+            top : e.clientY,
+            hideDelay : 0    // default value is 2000.  color picker don't hide automatically when hideDelay is zero
+        }, defaultColor, (newColor:string)=>{
+            this._events?.updateEdgeColor(edge,newColor)
+        })
     }
 }

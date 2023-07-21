@@ -18,6 +18,9 @@ import { Selection } from '@antv/x6-plugin-selection'; //选择
 import { Clipboard } from '@antv/x6-plugin-clipboard'; //复制粘贴
 import { History } from '@antv/x6-plugin-history'; //撤销重做
 import { Export } from '@antv/x6-plugin-export'; //导出
+import '@easylogic/colorpicker/dist/colorpicker.css';
+import { ColorPicker } from '@easylogic/colorpicker';
+// import ColorPickerUI from '@easylogic/colorpicker' 
 import { registerEdge, inserCss } from './utils'; //工具
 // import X6Events from './events' //事件处理
 import ToolBar from './toolbar';
@@ -103,22 +106,15 @@ const ports = {
         },
     ],
 };
-const tools = [
-    {
-        name: 'vertices',
-        args: {
-            stopPropagation: false
-        }
-    },
-    {
-        name: 'button-remove',
-        args: { distance: -40 }
-    }
-];
 const defaultParams = {
     minimap: true,
     edit: true
 };
+const colorpicker = new ColorPicker({
+    color: 'blue',
+    type: 'ColorPicker',
+    outputFormat: 'hex'
+});
 export default class X6Tool {
     constructor(container, options) {
         const opt = Object.assign({}, defaultParams, options);
@@ -132,7 +128,7 @@ export default class X6Tool {
             this._createMinimap();
         }
         if (opt.edit) {
-            this._events = new ToolBar(this._graph, container);
+            this._events = new ToolBar(this._graph, container, this.changeEdgeColor.bind(this));
         }
         inserCss();
     }
@@ -154,7 +150,6 @@ export default class X6Tool {
                         data: {
                             type: 'edge'
                         },
-                        tools,
                         zIndex: -1,
                     });
                 },
@@ -201,7 +196,6 @@ export default class X6Tool {
             panning: false,
             mousewheel: {
                 enabled: true,
-                modifiers: ['alt', 'meta'],
             }
         });
         const pannable = document.querySelector('.x6-graph-pannable');
@@ -256,7 +250,6 @@ export default class X6Tool {
             pannable: true,
             pageVisible: false,
             pageBreak: false,
-            // padding: { top: 200, right: 1200, bottom: 200, left: 1200 }
         }));
         const minimapDom = document.createElement('div');
         minimapDom.style.cssText = `position:absolute;bottom:20px;right:20px`;
@@ -379,6 +372,7 @@ export default class X6Tool {
     getSimpleData() {
         const data = this._graph.toJSON();
         const cells = data.cells;
+        console.log(cells);
         const res = [];
         cells.forEach(item => {
             const tempItem = {
@@ -387,15 +381,15 @@ export default class X6Tool {
                 id: item.id,
                 shape: item.shape
             };
+            if (item.attrs) {
+                tempItem.attrs = item.attrs;
+            }
             if (item.data.type == 'edge') {
                 tempItem.source = item.source;
                 tempItem.target = item.target;
             }
             if (item.data.type == 'cell') {
-                tempItem.attrs = item.attrs;
                 tempItem.position = item.position;
-                tempItem.size = item.size;
-                tempItem.visible = item.visible;
             }
             res.push(tempItem);
         });
@@ -410,7 +404,6 @@ export default class X6Tool {
         data.forEach((item) => {
             if (item.data.type === 'edge') {
                 if (this.type == 'edit') {
-                    item.tools = tools;
                     item.attrs = {
                         line: {
                             strokeWidth: 2
@@ -423,8 +416,21 @@ export default class X6Tool {
             }
             if (item.data.type === 'cell') {
                 item.ports = ports;
+                item.size = { width: 80, height: 80 };
+                item.visible = true;
             }
         });
         this._graph.fromJSON({ cells: data });
+    }
+    changeEdgeColor(e, edge) {
+        const defaultColor = edge.getAttrByPath('line/stroke') || '#C2C8D5';
+        colorpicker.show({
+            left: e.clientX,
+            top: e.clientY,
+            hideDelay: 0 // default value is 2000.  color picker don't hide automatically when hideDelay is zero
+        }, defaultColor, (newColor) => {
+            var _a;
+            (_a = this._events) === null || _a === void 0 ? void 0 : _a.updateEdgeColor(edge, newColor);
+        });
     }
 }
