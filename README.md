@@ -60,12 +60,30 @@ graph.initStencil(groupData)
 
  ### 2023-07-14
  - 增加数据导出（导出数据分为简易数据和完成数据。简易数据会取消attrs等与业务无关数据；）
+ ```js
+
+    graph.getSimpleData()
+
+    graph.getFullData()
+```
  - 增加数据导入，将json数据直接在画布中呈现做回显
+ ```js
+    graph.importData()
+```
 
  ### 2023-07-18
  **修复平移画布元素显示不全的问题**
 
  ### 2023-07-21
  - 增加功能：修改连线颜色
+ - 增加事件：选中元素/连线
+
+ ### 2023-07-25
+ - ***修复修改连线颜色会重置之前已修改的连线颜色***
+ ```js
+ window.addEventListener('selected',({detail:Cell})=>{
+        console.log(e)
+    })
+```
 
 

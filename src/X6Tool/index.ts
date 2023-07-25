@@ -10,6 +10,7 @@ import { Clipboard } from '@antv/x6-plugin-clipboard'   //复制粘贴
 import { History } from '@antv/x6-plugin-history' //撤销重做
 import { Export } from '@antv/x6-plugin-export' //导出
 import '@easylogic/colorpicker/dist/colorpicker.css';
+//@ts-ignore
 import {ColorPicker} from '@easylogic/colorpicker'
 // import ColorPickerUI from '@easylogic/colorpicker' 
 import { registerEdge, inserCss } from './utils'     //工具
@@ -119,11 +120,6 @@ const defaultParams: x6ToolParams = {
     edit: true
 }
 
-const colorpicker =new ColorPicker({
-    color: 'blue', // init color code 
-    type : 'ColorPicker', // or 'sketch',  default type is 'chromedevtool'
-    outputFormat : 'hex'
-})
 export default class X6Tool {
     private _graph: Graph
     public _el: HTMLElement
@@ -427,7 +423,6 @@ export default class X6Tool {
     public getSimpleData() {
         const data = this._graph.toJSON()
         const cells = data.cells
-        console.log(cells)
         const res: Cell.Properties[] = []
         cells.forEach(item => {
             const tempItem: any = {
@@ -482,13 +477,21 @@ export default class X6Tool {
     }
 
     public changeEdgeColor(e:MouseEvent,edge:Cell){
-        const defaultColor =  edge.getAttrByPath('line/stroke')||'#C2C8D5'
+        const defaultColor =  edge.data.color||'#C2C8D5'
+        let colorpicker =new ColorPicker({
+            color: defaultColor, // init color code 
+            type : 'ColorPicker', // or 'sketch',  default type is 'chromedevtool'
+            outputFormat : 'hex'
+        })
         colorpicker.show({
             left :e.clientX,
             top : e.clientY,
             hideDelay : 0    // default value is 2000.  color picker don't hide automatically when hideDelay is zero
         }, defaultColor, (newColor:string)=>{
             this._events?.updateEdgeColor(edge,newColor)
+        },
+        ()=>{},()=>{
+            colorpicker = null
         })
     }
 }

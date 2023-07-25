@@ -41,7 +41,7 @@ export default class X6Events extends contextMenu {
                       selector: 'icon',
                       attrs: {
                         fill: '#fe854f',
-                        fontSize: 10,
+                        fontSize: 12,
                         textAnchor: 'middle',
                         pointerEvents: 'none',
                         y: '0.3em',
@@ -49,10 +49,6 @@ export default class X6Events extends contextMenu {
                     },
                   ],
                   distance: -40,
-                //   onClick({ view }: { view: EdgeView }) {
-                //     const edge = view.cell
-                //     changeEdgeColorCallBack && changeEdgeColorCallBack(edge)
-                //   },
                 onClick({view,e}:{view: EdgeView,e:MouseEvent}){
                     const edge = view.cell
                     changeEdgeColorCallBack && changeEdgeColorCallBack(e,edge)
@@ -174,8 +170,11 @@ export default class X6Events extends contextMenu {
     }
 
     public updateEdgeColor(edge:Cell,color:string){
-        this._defaultEdgeStyle[edge.id] = color
-        edge.setAttrByPath('line',{stroke:color})
+        if(color){
+            this._defaultEdgeStyle[edge.id] = color
+            edge.data.color = color
+            edge.setAttrByPath('line',{stroke:color})
+        }
     }
 
 }

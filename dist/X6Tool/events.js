@@ -35,7 +35,7 @@ export default class X6Events extends contextMenu {
                             selector: 'icon',
                             attrs: {
                                 fill: '#fe854f',
-                                fontSize: 10,
+                                fontSize: 12,
                                 textAnchor: 'middle',
                                 pointerEvents: 'none',
                                 y: '0.3em',
@@ -43,10 +43,6 @@ export default class X6Events extends contextMenu {
                         },
                     ],
                     distance: -40,
-                    //   onClick({ view }: { view: EdgeView }) {
-                    //     const edge = view.cell
-                    //     changeEdgeColorCallBack && changeEdgeColorCallBack(edge)
-                    //   },
                     onClick({ view, e }) {
                         const edge = view.cell;
                         changeEdgeColorCallBack && changeEdgeColorCallBack(e, edge);
@@ -113,6 +109,7 @@ export default class X6Events extends contextMenu {
         this._graph.on('cell:unselected', ({ cell }) => {
             this.selectedCell = null;
             if (cell.data.type === 'edge') {
+                console.log(cell, this._defaultEdgeStyle[cell.id]);
                 cell.setAttrByPath('line', { stroke: this._defaultEdgeStyle[cell.id], strokeWidth: 2 });
             }
             const selectedEvent = new CustomEvent('selected', { detail: null });
@@ -155,7 +152,11 @@ export default class X6Events extends contextMenu {
         });
     }
     updateEdgeColor(edge, color) {
-        this._defaultEdgeStyle[edge.id] = color;
-        edge.setAttrByPath('line', { stroke: color });
+        console.log(edge.id, color);
+        if (color) {
+            this._defaultEdgeStyle[edge.id] = color;
+            edge.data.color = color;
+            edge.setAttrByPath('line', { stroke: color });
+        }
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "x6tool",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "基于AntV-X6封装的拓扑图编辑器",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

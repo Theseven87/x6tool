@@ -19,6 +19,7 @@ import { Clipboard } from '@antv/x6-plugin-clipboard'; //复制粘贴
 import { History } from '@antv/x6-plugin-history'; //撤销重做
 import { Export } from '@antv/x6-plugin-export'; //导出
 import '@easylogic/colorpicker/dist/colorpicker.css';
+//@ts-ignore
 import { ColorPicker } from '@easylogic/colorpicker';
 // import ColorPickerUI from '@easylogic/colorpicker' 
 import { registerEdge, inserCss } from './utils'; //工具
@@ -110,11 +111,6 @@ const defaultParams = {
     minimap: true,
     edit: true
 };
-const colorpicker = new ColorPicker({
-    color: 'blue',
-    type: 'ColorPicker',
-    outputFormat: 'hex'
-});
 export default class X6Tool {
     constructor(container, options) {
         const opt = Object.assign({}, defaultParams, options);
@@ -423,7 +419,13 @@ export default class X6Tool {
         this._graph.fromJSON({ cells: data });
     }
     changeEdgeColor(e, edge) {
-        const defaultColor = edge.getAttrByPath('line/stroke') || '#C2C8D5';
+        const defaultColor = edge.data.color || '#C2C8D5';
+        let colorpicker = new ColorPicker({
+            color: defaultColor,
+            type: 'ColorPicker',
+            outputFormat: 'hex'
+        });
+        // colorpicker.initColor(defaultColor)
         colorpicker.show({
             left: e.clientX,
             top: e.clientY,
@@ -431,6 +433,8 @@ export default class X6Tool {
         }, defaultColor, (newColor) => {
             var _a;
             (_a = this._events) === null || _a === void 0 ? void 0 : _a.updateEdgeColor(edge, newColor);
+        }, () => { }, () => {
+            colorpicker = null;
         });
     }
 }
