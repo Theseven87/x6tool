@@ -10,11 +10,8 @@ import { Clipboard } from '@antv/x6-plugin-clipboard'   //复制粘贴
 import { History } from '@antv/x6-plugin-history' //撤销重做
 import { Export } from '@antv/x6-plugin-export' //导出
 import '@easylogic/colorpicker/dist/colorpicker.css';
-//@ts-ignore
 import {ColorPicker} from '@easylogic/colorpicker'
-// import ColorPickerUI from '@easylogic/colorpicker' 
 import { registerEdge, inserCss } from './utils'     //工具
-// import X6Events from './events' //事件处理
 import ToolBar from './toolbar'
 const ports = {
     groups: {
@@ -478,7 +475,7 @@ export default class X6Tool {
 
     public changeEdgeColor(e:MouseEvent,edge:Cell){
         const defaultColor =  edge.data.color||'#C2C8D5'
-        let colorpicker =new ColorPicker({
+        let colorpicker:ColorPicker|null =new ColorPicker({
             color: defaultColor, // init color code 
             type : 'ColorPicker', // or 'sketch',  default type is 'chromedevtool'
             outputFormat : 'hex'
