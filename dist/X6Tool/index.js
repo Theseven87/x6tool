@@ -368,7 +368,6 @@ export default class X6Tool {
     getSimpleData() {
         const data = this._graph.toJSON();
         const cells = data.cells;
-        console.log(cells);
         const res = [];
         cells.forEach(item => {
             const tempItem = {
@@ -425,7 +424,6 @@ export default class X6Tool {
             type: 'ColorPicker',
             outputFormat: 'hex'
         });
-        // colorpicker.initColor(defaultColor)
         colorpicker.show({
             left: e.clientX,
             top: e.clientY,

@@ -109,7 +109,6 @@ export default class X6Events extends contextMenu {
         this._graph.on('cell:unselected', ({ cell }) => {
             this.selectedCell = null;
             if (cell.data.type === 'edge') {
-                console.log(cell, this._defaultEdgeStyle[cell.id]);
                 cell.setAttrByPath('line', { stroke: this._defaultEdgeStyle[cell.id], strokeWidth: 2 });
             }
             const selectedEvent = new CustomEvent('selected', { detail: null });
@@ -152,7 +151,6 @@ export default class X6Events extends contextMenu {
         });
     }
     updateEdgeColor(edge, color) {
-        console.log(edge.id, color);
         if (color) {
             this._defaultEdgeStyle[edge.id] = color;
             edge.data.color = color;
